@@ -385,15 +385,15 @@ value:
       $$ = new Value((float)$1);
       @$ = @1;
     }
-    |SSS {
+    |DATE_STR {
       char *tmp = common::substr($1,1,strlen($1)-2);
-      $$ = new Value(tmp);
+      $$ = new Value(tmp,strlen(tmp),1);
       free(tmp);
       free($1);
     }
     |SSS {
       char *tmp = common::substr($1,1,strlen($1)-2);
-      $$ = new Value(tmp,strlen(tmp),1);
+      $$ = new Value(tmp);
       free(tmp);
       free($1);
     }

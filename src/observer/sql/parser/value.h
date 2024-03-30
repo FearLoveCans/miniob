@@ -99,3 +99,4 @@ private:
 
 bool is_leap_year(int year);
 void strDate_to_intDate(const char* strDate,int& intDate);
+void intDate_to_strDate(const int intDate,std::string& strDate);
