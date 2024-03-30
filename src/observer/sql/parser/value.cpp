@@ -45,6 +45,13 @@ Value::Value(bool val) { set_boolean(val); }
 
 Value::Value(const char *s, int len /*= 0*/) { set_string(s, len); }
 
+Value::Value(const char *strDate, int len, int flag) 
+{
+  int intDate=0;
+  strDate_to_intDate(strDate,intDate);
+  set_date(intDate);
+}
+
 void Value::set_data(char *data, int length)
 {
   switch (attr_type_) {
@@ -63,6 +70,10 @@ void Value::set_data(char *data, int length)
       num_value_.bool_value_ = *(int *)data != 0;
       length_                = length;
     } break;
+     case DATES: {
+      num_value_.date_value_ = *(int *)data;
+      length_               = length;
+    } break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
     } break;
@@ -74,7 +85,12 @@ void Value::set_int(int val)
   num_value_.int_value_ = val;
   length_               = sizeof(val);
 }
-
+void Value::set_date(int val)
+{
+  attr_type_            = DATES;
+  num_value_.date_value_ = val;
+  length_               = sizeof(val);
+}
 void Value::set_float(float val)
 {
   attr_type_              = FLOATS;
@@ -247,6 +263,8 @@ float Value::get_float() const
 
 std::string Value::get_string() const { return this->to_string(); }
 
+int Value::get_date() const { return num_value_.date_value_; }
+
 bool Value::get_boolean() const
 {
   switch (attr_type_) {
@@ -284,4 +302,22 @@ bool Value::get_boolean() const
     }
   }
   return false;
+}
+
+bool is_leap_year(int year)
+{
+  return (year%4==0&&year%100!=0)||year%400==0;
+}
+void strDate_to_intDate(const char* strDate,int& intDate)
+{
+  int year =0;
+  int month =0;
+  int day =0;
+  int ret =sscanf(strDate,"%d,%d,%d",&year,&month,&day);
+  if(ret!=3)
+  {
+    throw "date illegal";
+  }
+  intDate=day+month*100+year*10000;
+  return;
 }
