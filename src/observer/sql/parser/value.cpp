@@ -373,3 +373,17 @@ void intDate_to_strDate(const int intDate,std::string& strDate)
   snprintf(buf,sizeof(buf),"%04d-%02d-%02d",intDate/10000,(intDate%10000)/100,intDate%100);
   strDate.assign(buf,strlen(buf));
 }
+
+bool Value::check_date() const
+{
+  const Value value =*this;
+  int intDate = value.get_date();
+  int year = intDate/10000;
+  int month = (intDate%10000)/100;
+  int day = intDate%100;
+  static int mon[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    bool leap = (year%400==0 || (year%100 && year%4==0));
+    return year > 0
+        && (month > 0)&&(month <= 12)
+        && (day > 0)&&(day <= ((month==2 && leap)?1:0) + mon[month]);
+}

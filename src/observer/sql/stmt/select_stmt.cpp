@@ -130,6 +130,27 @@ RC SelectStmt::create(Db *db, const SelectSqlNode &select_sql, Stmt *&stmt)
     default_table = tables[0];
   }
 
+  //check date 
+   int value_num = select_sql.conditions.size();
+   for(int i=0;i<value_num;i++)
+   {
+    if (!(select_sql.conditions[i].left_is_attr)&&(select_sql.conditions[i].left_value.attr_type()==DATES)){
+      
+      if(select_sql.conditions[i].left_value.check_date()==0)
+      {
+        LOG_WARN("invalid argument. Date illegal");
+        return RC::INVALID_ARGUMENT;
+      }
+    }
+    if(!(select_sql.conditions[i].right_is_attr)&&(select_sql.conditions[i].right_value.attr_type()==DATES)){
+      if(select_sql.conditions[i].right_value.check_date()==0)
+      {
+        LOG_WARN("invalid argument. Date illegal");
+        return RC::INVALID_ARGUMENT;
+      }
+    }
+   }
+
   // create filter statement in `where` statement
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(db,

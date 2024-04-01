@@ -82,6 +82,7 @@ public:
   int         get_date() const;
   std::string get_string() const;
   bool        get_boolean() const;
+  bool        check_date()const;
 
 private:
   AttrType attr_type_ = UNDEFINED;

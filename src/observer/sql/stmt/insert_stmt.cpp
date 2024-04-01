@@ -58,7 +58,19 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
           table_name, field_meta->name(), field_type, value_type);
       return RC::SCHEMA_FIELD_TYPE_MISMATCH;
     }
+     //check date 
+    if (field_type == DATES) {
+      if(inserts.values[i].check_date()==0)
+      {
+        LOG_WARN("invalid argument. invalid argument. Date illegal",
+        db, table_name, static_cast<int>(inserts.values.size()));
+        return RC::INVALID_ARGUMENT;
+      }
+    }
   }
+
+
+
 
   // everything alright
   stmt = new InsertStmt(table, values, value_num);
