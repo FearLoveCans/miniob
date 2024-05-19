@@ -53,6 +53,7 @@ struct RelAttrSqlNode
   bool valid = true;
 };
 
+
 /**
  * @brief 描述比较运算符
  * @ingroup SQLParser

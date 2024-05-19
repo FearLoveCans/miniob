@@ -13,14 +13,65 @@ See the Mulan PSL v2 for more details. */
 //
 
 #include "sql/stmt/update_stmt.h"
+#include "common/log/log.h"
+#include "sql/stmt/filter_stmt.h"
+#include "storage/db/db.h"
+#include "storage/table/table.h"
 
-UpdateStmt::UpdateStmt(Table *table, Value *values, int value_amount)
-    : table_(table), values_(values), value_amount_(value_amount)
+UpdateStmt::UpdateStmt(Table *table,Field field, Value value, FilterStmt *filter_stmt)
+    : table_(table),field_(field),value_(value),filter_stmt_(filter_stmt)
 {}
 
-RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
+RC UpdateStmt::create(Db *db, const UpdateSqlNode &update_sql, Stmt *&stmt)
 {
   // TODO
-  stmt = nullptr;
-  return RC::INTERNAL;
+   if (db == nullptr ) {
+    LOG_WARN("invalid argument. db is null");
+    return RC::INVALID_ARGUMENT;
+  }
+  const char *table_name = update_sql.relation_name.c_str();
+
+  //check
+  if(table_name == nullptr)
+  {
+    LOG_WARN("invalid argument. relation name is null.");
+    return RC::INVALID_ARGUMENT;
+  }
+
+  Table *table = db->find_table(table_name);
+
+  if(table == nullptr){
+    LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
+    return RC::SCHEMA_TABLE_NOT_EXIST;
+  }
+
+const FieldMeta *field_meta = table->table_meta().field(update_sql.attribute_name.c_str());
+
+  if(field_meta == nullptr){
+    LOG_WARN("no such field. field=%s.%s.%s", db->name(), table->name(), update_sql.attribute_name.c_str());
+    return RC::SCHEMA_TABLE_NOT_EXIST;
+  } 
+
+  std::unordered_map<std::string,Table *>table_map;
+  table_map.insert(std::pair<std::string, Table *>(table_name,table));
+
+  FilterStmt *filter_stmt = nullptr;
+  RC rc = FilterStmt::create(
+    db,
+    table,
+    &table_map,
+    update_sql.conditions.data(),
+    static_cast<int>(update_sql.conditions.size()),
+    filter_stmt
+  );
+    if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to create filter statement. rc=%d:%s", rc, strrc(rc));
+    return rc;
+  }
+
+  Value value = update_sql.value;
+  Field field(table, field_meta);
+
+  stmt = new UpdateStmt(table, field,value,filter_stmt);
+  return rc;
 }
