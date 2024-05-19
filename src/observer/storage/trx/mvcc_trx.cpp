@@ -190,6 +190,15 @@ RC MvccTrx::delete_record(Table *table, Record &record)
   return RC::SUCCESS;
 }
 
+
+
+RC MvccTrx::update_record(Table *table, Record &record,int offset,int len,Value &value)
+{
+  return RC::INTERNAL;
+}
+
+
+
 RC MvccTrx::visit_record(Table *table, Record &record, bool readonly)
 {
   Field begin_field;

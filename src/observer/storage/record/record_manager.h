@@ -166,6 +166,8 @@ public:
    */
   RC insert_record(const char *data, RID *rid);
 
+  RC update_record(RID *rid,int offset,int len,Value &value);
+
   /**
    * @brief 数据库恢复时，在指定位置插入数据
    *
@@ -276,6 +278,7 @@ public:
    */
   RC insert_record(const char *data, int record_size, RID *rid);
 
+  RC update_record(RID *rid,int offset,int len,Value &value);
   /**
    * @brief 数据库恢复时，在指定文件指定位置插入数据
    *
