@@ -90,6 +90,8 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
         VALUES
         FROM
         WHERE
+        JOIN
+        INNER
         AND
         SET
         ON
@@ -111,6 +113,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
   Value *                           value;
   enum CompOp                       comp;
   RelAttrSqlNode *                  rel_attr;
+  JoinSqlNode *                     join_list;
   enum AggrOp                       aggregation;
   std::vector<AttrInfoSqlNode> *    attr_infos;
   AttrInfoSqlNode *                 attr_info;
@@ -152,6 +155,7 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
 %type <rel_attr_list>       rel_attr_aggr_list
 %type <expression>          expression
 %type <expression_list>     expression_list
+%type <join_list>           join_list
 %type <sql_node>            calc_stmt
 %type <sql_node>            select_stmt
 %type <sql_node>            insert_stmt
@@ -436,7 +440,7 @@ update_stmt:      /*  update 语句的语法解析树*/
     }
     ;
 select_stmt:        /*  select 语句的语法解析树*/
-    SELECT select_attr FROM ID rel_list where
+    SELECT select_attr FROM ID rel_list join_list where
     {
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
@@ -447,16 +451,61 @@ select_stmt:        /*  select 语句的语法解析树*/
         $$->selection.relations.swap(*$5);
         delete $5;
       }
+
       $$->selection.relations.push_back($4);
       std::reverse($$->selection.relations.begin(), $$->selection.relations.end());
 
-      if ($6 != nullptr) {
-        $$->selection.conditions.swap(*$6);
-        delete $6;
+      if ($7 != nullptr) {
+        $$->selection.conditions.swap(*$7);
+        delete $7;
       }
       free($4);
+
+      if ($6 != nullptr){
+        $$->selection.relations.insert($$->selection.relations.end(),$6->relations.begin(),$6->relations.end());
+        $$->selection.conditions.insert($$->selection.conditions.end(),$6->conditions.begin(),$6->conditions.end());
+        delete $6;
+      }
     }
     ;
+
+join_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    |INNER JOIN ID ON condition_list join_list
+    {
+      $$ = new JoinSqlNode();
+      $$->relations.push_back($3);
+      std::reverse($$->relations.begin(), $$->relations.end());
+      if ($5 != nullptr) {
+        $$->conditions.swap(*$5);
+        delete $5;
+      }
+      free($3);
+      if ($6 != nullptr){
+        $$->relations.insert($$->relations.end(),$6->relations.begin(),$6->relations.end());
+        $$->conditions.insert($$->conditions.end(),$6->conditions.begin(),$6->conditions.end());
+      }
+    }
+    |JOIN ID ON condition_list join_list
+    {
+      $$ = new JoinSqlNode();
+      $$->relations.push_back($2);
+      std::reverse($$->relations.begin(), $$->relations.end());
+      if ($4 != nullptr) {
+        $$->conditions.swap(*$4);
+        delete $4;
+      }
+      free($2);
+      if ($5 != nullptr){
+        $$->relations.insert($$->relations.end(),$5->relations.begin(),$5->relations.end());
+        $$->conditions.insert($$->conditions.end(),$5->conditions.begin(),$5->conditions.end());
+      }
+    }
+    ;
+
 calc_stmt:
     CALC expression_list
     {

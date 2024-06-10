@@ -90,6 +90,13 @@ struct ConditionSqlNode
   Value          right_value;    ///< right-hand side value if right_is_attr = FALSE
 };
 
+struct JoinSqlNode
+{
+  std::vector<std::string>         relations;
+  std::vector<ConditionSqlNode>    conditions;
+}; 
+
+
 /**
  * @brief 描述一个select语句
  * @ingroup SQLParser
@@ -279,6 +286,7 @@ enum SqlCommandFlag
   SCF_INSERT,
   SCF_UPDATE,
   SCF_DELETE,
+  SCF_JOIN,
   SCF_CREATE_TABLE,
   SCF_DROP_TABLE,
   SCF_CREATE_INDEX,
@@ -307,6 +315,7 @@ public:
   ErrorSqlNode        error;
   CalcSqlNode         calc;
   SelectSqlNode       selection;
+  JoinSqlNode         join;
   InsertSqlNode       insertion;
   DeleteSqlNode       deletion;
   UpdateSqlNode       update;

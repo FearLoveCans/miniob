@@ -78,4 +78,58 @@ int compare_date(void *arg1, void *arg2)
   }
 }
 
+int compare_str_with_int(void *arg1,int arg1_max_length,void *arg2)
+{
+    int int_value = *static_cast<int*>(arg2);
+    std::string int_str = std::to_string(int_value);
+
+    const char *s1     = (const char *)arg1;
+
+    int len_s2 = int_str.length();
+
+
+    int maxlen = std::min(arg1_max_length, len_s2);
+    int result = strncmp(s1, int_str.c_str(), maxlen);
+
+  if (0 != result) {
+    return result;
+  }
+
+  if (arg1_max_length > maxlen) {
+    return s1[maxlen] - 0;
+  }
+
+  if (len_s2 > maxlen) {
+    return 0 - int_str.c_str()[maxlen];
+  }
+  return 0;
+}
+
+int compare_str_with_float(void *arg1,int arg1_max_length,void *arg2)
+{
+    float float_value = *static_cast<float*>(arg2);
+    std::string float_str = std::to_string(float_value);
+
+    const char *s1     = (const char *)arg1;
+
+    int len_s2 = float_str.length();
+
+
+    int maxlen = std::min(arg1_max_length, len_s2);
+    int result = strncmp(s1, float_str.c_str(), maxlen);
+
+  if (0 != result) {
+    return result;
+  }
+
+  if (arg1_max_length > maxlen) {
+    return s1[maxlen] - 0;
+  }
+
+  if (len_s2 > maxlen) {
+    return 0 - float_str.c_str()[maxlen];
+  }
+  return 0;
+}
+
 }  // namespace common
